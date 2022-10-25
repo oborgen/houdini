@@ -14,7 +14,7 @@
         "ast-types": "^0.15.1",
         "estree-walker": "^3.0.1",
         "graphql": "^16.6.0",
-        "houdini": "workspace:^",
+        "houdini": "https://gitpkg.now.sh/oborgen/houdini/packages/houdini?tenant",
         "minimatch": "^5.1.0",
         "recast": "^0.21.5",
         "svelte": "^3.52.0"
