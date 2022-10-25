@@ -259,7 +259,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		policy?: CachePolicy
 		context: FetchContext
 	}) {
-		console.log("fetchAndCache", variables);
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
 			client: await getCurrentClient(),
