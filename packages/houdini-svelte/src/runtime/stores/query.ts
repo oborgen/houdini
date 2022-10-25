@@ -72,6 +72,42 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
+		// Example usage:
+		// 
+		// src/routes/tenant/[tenantID]/+layout.ts
+		// 
+		// import type { LoadEvent } from "@sveltejs/kit"
+		//
+		// export function load(event: LoadEvent) {
+		//     return {
+		//         houdiniVariablesMiddleware: (variables: any) => {
+		//             return {
+		//                 ...variables,
+		//                 tenantID: event.params.tenantID
+		//             }
+		//         }
+		//     }
+		// }
+		// 
+		// tenantID can now be retrieved in client.ts using variables.companyID.
+
+		if(args && "event" in args && args.event) {
+			// Get houdiniVariablesMiddleware.
+			const event = args.event as LoadEvent
+			const parent = await event.parent()
+			const variablesMiddleware = parent.houdiniVariablesMiddleware
+
+			if(variablesMiddleware) {
+				// Call variablesMiddleware with the variables and inject the
+				// return value into args.
+				const variables = variablesMiddleware(args.variables)
+				args = {
+					...args,
+					variables,
+				}
+			}
+		}
+
 		const config = await this.getConfig()
 		// set the cache's config
 		getCache().setConfig(config)
@@ -223,6 +259,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		policy?: CachePolicy
 		context: FetchContext
 	}) {
+		console.log("fetchAndCache", variables);
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
 			client: await getCurrentClient(),
