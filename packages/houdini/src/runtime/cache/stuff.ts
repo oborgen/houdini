@@ -31,6 +31,9 @@ export function evaluateKey(key: string, variables: { [key: string]: GraphQLValu
 	// some state to track if we are "in" a string
 	let inString = false
 
+	// A set of variables read when evaluating the key.
+	const readVariables = new Set<String>()
+
 	for (const char of key) {
 		// if we are building up a variable
 		if (varName) {
@@ -47,6 +50,9 @@ export function evaluateKey(key: string, variables: { [key: string]: GraphQLValu
 			const value = variables[varName.slice(1)]
 
 			evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
+
+			// Mark the variable as being read.
+			readVariables.add(varName.slice(1))
 
 			// clear the variable name accumulator
 			varName = ''
@@ -68,6 +74,27 @@ export function evaluateKey(key: string, variables: { [key: string]: GraphQLValu
 
 		// this isn't a special case, just add the letter to the value
 		evaluated += char
+	}
+
+	// A map of variables to stringified values of variables that are not
+	// contained in the GraphQL query.
+	const extraVariables = new Map<String, String>()
+
+	// Process each variable.
+	for(const variable in variables) {
+		// Check if the variable was read in the for loop above.
+		if(!readVariables.has(variable)) {
+			// If not, add it to extraVariables.
+			const value = variables[variable]
+			extraVariables.set(variable, typeof value !== 'undefined'
+				? JSON.stringify(value)
+				: 'undefined')
+		}
+	}
+
+	// Add extraVariables to evaluated if at least one extra variable exists.
+	if(extraVariables.size > 0) {
+		evaluated += " " + JSON.stringify(Object.fromEntries(extraVariables))
 	}
 
 	return evaluated

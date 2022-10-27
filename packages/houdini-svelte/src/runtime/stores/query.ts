@@ -72,6 +72,23 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
+		if(args && "event" in args && args.event) {
+			// Get houdiniVariablesMiddleware.
+			const event = args.event as LoadEvent
+			const parent = await event.parent()
+			const variablesMiddleware = parent.houdiniVariablesMiddleware
+
+			if(variablesMiddleware) {
+				// Call variablesMiddleware with the variables and inject the
+				// return value into args.
+				const variables = variablesMiddleware(args.variables)
+				args = {
+					...args,
+					variables,
+				}
+			}
+		}
+
 		const config = await this.getConfig()
 		// set the cache's config
 		getCache().setConfig(config)
