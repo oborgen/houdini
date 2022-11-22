@@ -1,6 +1,3 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices as replayDevices } from '@replayio/playwright';
-
 // manual switch for now until replayio is fixed (currently breaking our tests)
 const with_replayio = false;
 
@@ -18,12 +15,9 @@ if (process.env.CI) {
   reporter.push(['html', { open: 'never' }]);
   reporter.push(['github']);
 }
-if (with_replayio) {
-  reporter.push(['@replayio/playwright/reporter']);
-}
 
 const config = {
-  // retries: 2,
+  retries: process.env.CI ? 3 : 0,
   workers: 5,
   reporter,
   use,

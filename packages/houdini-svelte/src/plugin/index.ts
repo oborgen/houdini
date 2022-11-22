@@ -38,6 +38,27 @@ const HoudiniSveltePlugin: PluginFactory = async () => ({
 
 			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
 		},
+
+		'adapter.js': ({ content }) => {
+			// dedicated sveltekit adapter.
+			const sveltekit_adapter = `import { browser, prerendering } from '$app/environment'
+import { error as svelteKitError } from '@sveltejs/kit'
+
+export const isBrowser = browser
+
+export let clientStarted = false;
+
+export function setClientStarted() {
+	clientStarted = true
+}
+
+export const isPrerender = prerendering
+
+export const error = svelteKitError
+`
+
+			return framework === 'kit' ? sveltekit_adapter : content
+		},
 	},
 
 	// custom logic to pull a graphql document out of a svelte file
@@ -162,4 +183,21 @@ export type HoudiniVitePluginConfig = {
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
 	 */
 	static?: boolean
+
+	/**
+	 * Override the classes used when building stores for documents. Values should take the form package.export
+	 * For example, if you have a store exported from $lib/stores you should set the value to "$lib/stores.CustomStore".
+	 */
+	customStores?: {
+		query?: string
+		mutation?: string
+		subscription?: string
+		fragment?: string
+		queryForwardsCursor?: string
+		queryBackwardsCursor?: string
+		queryOffset?: string
+		fragmentForwardsCursor?: string
+		fragmentBackwardsCursor?: string
+		fragmentOffset?: string
+	}
 }

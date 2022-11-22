@@ -4,6 +4,10 @@ export const routes = {
 
   // features
   Query_param: '/query-param',
+  isFetching_with_load: '/isFetching/with_load',
+  isFetching_without_load: '/isFetching/without_load',
+  isFetching_route_1: '/isFetching/route_1',
+  lists_all: '/lists-all?limit=15',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
@@ -12,6 +16,8 @@ export const routes = {
   Stores_Mutation: '/stores/mutation',
   Stores_Mutation_Update: '/stores/mutation-update',
   Stores_Mutation_Scalars: '/stores/mutation-scalars',
+  Stores_Mutation_Scalar_Single_Upload: '/stores/mutation-scalar-single-upload',
+  Stores_Mutation_Scalar_Multi_Upload: '/stores/mutation-scalar-multi-upload',
   Stores_Mutation_Enums: '/stores/mutation-enums',
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
@@ -36,6 +42,8 @@ export const routes = {
   Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
 
+  Plugin_subscription_renders: '/plugin/subscription/renders',
+
   Plugin_mutation_mutation: '/plugin/mutation/mutation',
   Plugin_fragment_update: '/plugin/fragment/update',
 
@@ -53,6 +61,8 @@ export const routes = {
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
   Pagination_fragment_offset: '/pagination/fragment/offset',
+
+  Stores_Nested_List: '/stores/nested-list',
 
   Stores_subunsub_list: '/stores/subunsub-list',
   Stores_subunsub_mutation: '/stores/subunsub-mutation',

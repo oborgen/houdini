@@ -173,14 +173,14 @@ filesystem.readdirSync = function (
 
 	// if there is a route component but no script, add the script
 	if (
-		contains('+page.svelte') &&
+		contains('+page.svelte', '+page.gql') &&
 		!contains('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
 	) {
 		result.push(virtual_file('+page.js', options))
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
-	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
+	if (contains('+layout.svelte', '+layout.gql') && !contains('+layout.ts', '+layout.js')) {
 		result.push(virtual_file('+layout.js', options))
 	}
 
@@ -228,10 +228,18 @@ function virtual_file(name: string, options: Parameters<typeof filesystem.readdi
 }
 
 function is_root_route(filepath: PathLike): boolean {
+	filepath = filepath.toString()
+
+	// if the filepath ends with / we need to strip that away
+	if (filepath.toString().endsWith('/')) {
+		filepath = filepath.slice(0, -1)
+	}
+
 	return (
-		filepath.toString().endsWith(path.join('src', 'routes')) &&
-		// ignore the src/routes that exists in the
-		!filepath.toString().includes(path.join('.svelte-kit', 'types'))
+		filepath.endsWith(path.join('src', 'routes')) &&
+		// ignore the src/routes that exists in the type roots
+		!filepath.includes('.svelte-kit') &&
+		!filepath.includes('$houdini')
 	)
 }
 

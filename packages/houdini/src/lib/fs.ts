@@ -4,10 +4,57 @@ import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
 import { promisify } from 'util'
 
+import { houdini_mode } from './constants'
 import * as path from './path'
 
+export function copyFileSync(src: string, dest: string): void | null {
+	if (houdini_mode.is_testing) {
+		try {
+			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
+				fsExtra.copyFileSync(src, dest)
+				return
+			}
+
+			memfs.copyFileSync(src, dest)
+			return
+		} catch (e) {
+			return null
+		}
+	}
+	try {
+		fsExtra.copyFileSync(src, dest)
+		return
+	} catch (e) {}
+
+	return null
+}
+
+export async function copyFile(src: string, dest: string): Promise<void | null> {
+	if (houdini_mode.is_testing) {
+		try {
+			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
+				await fs.copyFile(src, dest)
+				return
+			}
+
+			await memfs.copyFile(src, dest, (err) => {
+				throw err
+			})
+			return
+		} catch (e) {
+			return null
+		}
+	}
+	try {
+		await fs.copyFile(src, dest)
+		return
+	} catch (e) {}
+
+	return null
+}
+
 export async function readFile(filepath: string): Promise<string | null> {
-	if (process.env.NODE_ENV === 'test') {
+	if (houdini_mode.is_testing) {
 		try {
 			if (filepath.includes('build/runtime')) {
 				return await fs.readFile(filepath, 'utf-8')
@@ -27,7 +74,7 @@ export async function readFile(filepath: string): Promise<string | null> {
 }
 
 export function readFileSync(filepath: string): string | null {
-	if (process.env.NODE_ENV === 'test') {
+	if (houdini_mode.is_testing) {
 		try {
 			if (filepath.includes('build/runtime')) {
 				return fsExtra.readFileSync(filepath, 'utf-8')
@@ -53,7 +100,7 @@ export async function writeFile(filepath: string, data: string) {
 	}
 
 	// no mock in tests
-	if (process.env.NODE_ENV === 'test') {
+	if (houdini_mode.is_testing) {
 		return memfs.writeFileSync(filepath, data)
 	}
 
@@ -62,7 +109,7 @@ export async function writeFile(filepath: string, data: string) {
 
 export async function access(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.access(filepath)
 	}
 
@@ -77,7 +124,7 @@ export async function access(filepath: string) {
 
 export async function mkdirp(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fsExtra.mkdirp(filepath)
 	}
 
@@ -86,7 +133,7 @@ export async function mkdirp(filepath: string) {
 
 export async function mkdirpSync(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return fsExtra.mkdirpSync(filepath)
 	}
 
@@ -95,7 +142,7 @@ export async function mkdirpSync(filepath: string) {
 
 export async function mkdir(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.mkdir(filepath)
 	}
 
@@ -104,7 +151,7 @@ export async function mkdir(filepath: string) {
 
 export async function rmdir(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.rm(filepath, {
 			recursive: true,
 		})
@@ -115,7 +162,7 @@ export async function rmdir(filepath: string) {
 
 export async function stat(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.stat(filepath)
 	}
 
@@ -129,7 +176,7 @@ export async function stat(filepath: string) {
 
 export function existsSync(dirPath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return fsExtra.existsSync(dirPath)
 	}
 
@@ -138,7 +185,7 @@ export function existsSync(dirPath: string) {
 
 export async function readdir(filepath: string): Promise<string[]> {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.readdir(filepath)
 	}
 	if (filepath.includes('build/runtime')) {
@@ -154,7 +201,7 @@ export async function readdir(filepath: string): Promise<string[]> {
 
 export async function remove(filepath: string) {
 	// no mock in production
-	if (process.env.NODE_ENV !== 'test') {
+	if (!houdini_mode.is_testing) {
 		return await fs.rm(filepath)
 	}
 

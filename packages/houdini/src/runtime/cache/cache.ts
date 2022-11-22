@@ -110,8 +110,8 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string | {}): ListCollection {
-		const handler = this._internal_unstable.lists.get(name, parentID)
+	list(name: string, parentID?: string, allLists?: boolean): ListCollection {
+		const handler = this._internal_unstable.lists.get(name, parentID, allLists)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
@@ -181,7 +181,7 @@ class CacheInternal {
 
 		// the cache should always be disabled on the server, unless we're testing
 		try {
-			this._disabled = process.env.TEST !== 'true'
+			this._disabled = process.env.HOUDINI_TEST !== 'true'
 		} catch {
 			this._disabled = typeof globalThis.window === 'undefined'
 		}
@@ -357,6 +357,7 @@ class CacheInternal {
 						selection: fields,
 						subscribers: currentSubscribers,
 						variables,
+						parentType: linkedType,
 					})
 
 					toNotify.push(...currentSubscribers)
@@ -545,6 +546,7 @@ class CacheInternal {
 						selection: fields,
 						subscribers: currentSubscribers,
 						variables,
+						parentType: linkedType,
 					})
 				}
 			}
@@ -568,7 +570,10 @@ class CacheInternal {
 				}
 
 				// if the necessary list doesn't exist, don't do anything
-				if (operation.list && !this.lists.get(operation.list, parentID)) {
+				if (
+					operation.list &&
+					!this.lists.get(operation.list, parentID, operation.target === 'all')
+				) {
 					continue
 				}
 
@@ -583,7 +588,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
@@ -596,7 +601,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.remove(target, variables)
 					}
@@ -622,7 +627,7 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID)
+							.list(operation.list, parentID, operation.target === 'all')
 							.when(operation.when)
 							.toggleElement(fields, target, variables, operation.position || 'last')
 					}

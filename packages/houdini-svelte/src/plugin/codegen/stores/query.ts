@@ -2,9 +2,11 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, GenerateHookInput, path } from 'houdini'
 import { operation_requires_variables, fs } from 'houdini'
 
+import type { HoudiniVitePluginConfig } from '../..'
 import { global_store_name, stores_directory, store_name } from '../../kit'
+import { store_import } from './custom'
 
-export async function generateIndividualStoreQuery(
+export async function queryStore(
 	{ config, plugin_root }: GenerateHookInput,
 	doc: CollectedGraphQLDocument
 ) {
@@ -27,23 +29,20 @@ export async function generateIndividualStoreQuery(
 	const paginationMethod = doc.refetch?.paginated && doc.refetch.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let queryClass = 'QueryStore'
+	let which: keyof Required<HoudiniVitePluginConfig>['customStores'] = 'query'
 	if (paginationMethod === 'cursor') {
-		queryClass =
-			doc.refetch?.direction === 'forward'
-				? 'QueryStoreForwardCursor'
-				: 'QueryStoreBackwardCursor'
+		which =
+			doc.refetch?.direction === 'forward' ? 'queryForwardsCursor' : 'queryBackwardsCursor'
 	} else if (paginationMethod === 'offset') {
-		queryClass = 'QueryStoreOffset'
+		which = 'queryOffset'
 	}
 
 	// store definition
-	const storeData = `import { ${queryClass} } from '../runtime/stores'
+	const { store_class, statement } = store_import(config, which)
+	const storeData = `${statement}
 import artifact from '$houdini/artifacts/${artifactName}'
 
-// create the query store
-
-export class ${storeName} extends ${queryClass} {
+export class ${storeName} extends ${store_class} {
 	constructor() {
 		super({
 			artifact,
@@ -72,18 +71,80 @@ export default ${globalStoreName}
 	const _data = `${artifactName}$result`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_input}, ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
+	const typeDefs = `import type { ${_input}, ${_data}, ${store_class}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${queryClass}<${_data}, ${_input}> {
+export declare class ${storeName} extends ${store_class}<${_data}, ${_input}> {
+	/**
+	 * ### Route Loads
+	 * In a route's load function, manually instantiating a store can be used to look at the result:
+	 * 
+	 * \`\`\`js
+	 * export async function load(event) {
+	 * 	const store = new ${storeName}Store()
+	 * 	const { data } = await store.fetch({event})
+	 *  console.log('do something with', data)
+	 * 
+	 * 	return { 
+	 * 		${storeName}: store,
+	 * 	}
+	 * }
+	 * 
+	 * \`\`\`
+	 * 
+	 * ### Client Side Loading
+	 * When performing a client-side only fetch, the best practice to use a store _manually_ is to do the following:
+	 * 
+	 * \`\`\`js
+	 * const store = new ${storeName}Store()
+	 * 
+	 * $: browser && store.fetch({ variables });
+	 * \`\`\`
+	 */
 	constructor() {
 		// @ts-ignore
 		super({})
 	}
 }
 
-export const ${globalStoreName}: ${storeName}
-
+/**
+ * ### Manual Loads
+ * Usually your load function will look like this:
+ * 
+ * \`\`\`js
+ * import { load_${artifactName} } from '$houdini';
+ * import type { PageLoad } from './$types';
+ * 
+ * export const load: PageLoad = async (event) => {
+ *   const variables = {
+ *     id: // Something like: event.url.searchParams.get('id')
+ *   };
+ * 
+ *   return await load_${artifactName}({ event, variables });
+ * }; 
+ * \`\`\`
+ * 
+ * ### Multiple stores to load
+ * You can trigger them in parallel with \`loadAll\` function
+ * 
+ * \`\`\`js
+ * import { loadAll, load_${artifactName} } from '$houdini';
+ * import type { PageLoad } from './$types';
+ * 
+ * export const load: PageLoad = async (event) => {
+ *   const variables = {
+ *     id: // Something like: event.url.searchParams.get('id')
+ *   };
+ * 
+ *   return await await loadAll(
+ *     load_${artifactName}({ event, variables }),
+ *     // load_ANOTHER_STORE
+ *   );
+ * }; 
+ * \`\`\`
+ */
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
 `

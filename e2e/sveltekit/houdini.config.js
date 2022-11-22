@@ -2,7 +2,7 @@
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-  schemaPath: './api/*.graphql',
+  schemaPath: '../_api/*.graphql',
   defaultCachePolicy: 'CacheOrNetwork',
   defaultPartial: true,
   scalars: {
@@ -16,6 +16,9 @@ const config = {
       marshal(val) {
         return val.getTime();
       }
+    },
+    File: {
+      type: 'File'
     }
   },
   plugins: {

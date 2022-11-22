@@ -1,8 +1,48 @@
 # houdini
 
+## 0.17.12
+
+## 0.17.11
+
+## 0.17.10
+
+## 0.17.9
+
+### 🐛 Fixes
+
+-   [#693](https://github.com/HoudiniGraphql/houdini/pull/693) [`6e36775`](https://github.com/HoudiniGraphql/houdini/commit/6e367755d902eca3242519b4c609c0d5bc76f4ff) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing `@parentID` to be ignored when there was only one version of the list
+
+### ✨ Features
+
+-   [#693](https://github.com/HoudiniGraphql/houdini/pull/693) [`6e36775`](https://github.com/HoudiniGraphql/houdini/commit/6e367755d902eca3242519b4c609c0d5bc76f4ff) Thanks [@jycouet](https://github.com/jycouet)! - Adding a new directive @allLists to update all lists after a mutation
+
+## 0.17.6
+
+### 🐛 Fixes
+
+-   [#682](https://github.com/HoudiniGraphql/houdini/pull/682) [`57577ee`](https://github.com/HoudiniGraphql/houdini/commit/57577ee9144d17a5b357bf47abaecdf96a6176f8) Thanks [@Joklost](https://github.com/Joklost)! - Fix bug when updating deeply nested lists with @parentID
+
+-   [#677](https://github.com/HoudiniGraphql/houdini/pull/677) [`927146d`](https://github.com/HoudiniGraphql/houdini/commit/927146dd02c239a9e29e5de92271d4c4de16d7e2) Thanks [@jycouet](https://github.com/jycouet)! - fix - env.TEST is not used internally anymore
+
+### ✨ Features
+
+-   [#687](https://github.com/HoudiniGraphql/houdini/pull/687) [`dc659ef`](https://github.com/HoudiniGraphql/houdini/commit/dc659efe1bc04a6ff98166b4803a50b8761771bb) Thanks [@jycouet](https://github.com/jycouet)! - update init cmd to manage remote endpoint and local files
+
+## 0.17.5
+
+### ✨ Features
+
+-   [#660](https://github.com/HoudiniGraphql/houdini/pull/660) [`08b3d10`](https://github.com/HoudiniGraphql/houdini/commit/08b3d10c5305c43d457b11f288509e90459c2d0c) Thanks [@524c](https://github.com/524c)! - Add support for multipart file uploads
+
+## 0.17.4
+
+### 🐛 Fixes
+
+-   [#649](https://github.com/HoudiniGraphql/houdini/pull/649) [`13e6ea8`](https://github.com/HoudiniGraphql/houdini/commit/13e6ea87c23d1a3f99ce1a0c1054ebcec30ce83f) Thanks [@jycouet](https://github.com/jycouet)! - Update init cmd to accomodate new kit template
+
 ## 0.17.1
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#630](https://github.com/HoudiniGraphql/houdini/pull/630) [`02d8fc4`](https://github.com/HoudiniGraphql/houdini/commit/02d8fc47f71980bd2b6492162b8e57808447bdbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add shebang to executable
 

@@ -39,7 +39,7 @@ export async function expect_n_gql(
   page: Page,
   selector: string | null,
   n: number,
-  action: 'click' | 'hover' = 'click'
+  action: 'click' | 'hover' | 'press_ArrowUp' | 'press_ArrowDown' = 'click'
 ) {
   const start = new Date().valueOf();
   const timing: number[] = [];
@@ -81,8 +81,14 @@ export async function expect_n_gql(
   if (selector) {
     if (action === 'click') {
       await page.click(selector);
-    } else {
+    } else if (action === 'hover') {
       await page.hover(selector);
+    } else if (action === 'press_ArrowUp') {
+      await page.locator(selector).press('ArrowUp');
+    } else if (action === 'press_ArrowDown') {
+      page.locator(selector).press('ArrowDown');
+    } else {
+      throw new Error(`action ${action} not implemented`);
     }
   }
 
@@ -194,4 +200,8 @@ export async function expectToBe(
 export async function expectToContain(page: Page, toBe: string, selector = 'div[id=pageInfo]') {
   const result = await page.locator(selector).textContent({ timeout: 2998 });
   expect(result, `element "${selector}" must CONTAIN 👇`).toContain(toBe);
+}
+
+export async function waitForConsoleInfo(page: Page) {
+  return page.waitForEvent('console', { predicate: (msg) => msg.type() === 'info' });
 }

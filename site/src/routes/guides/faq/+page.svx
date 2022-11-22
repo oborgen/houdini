@@ -1,0 +1,138 @@
+---
+title: Frequently Asked Questions
+index: 0
+description: A list of frequently asked questions when working with Houdini
+---
+
+# F.A.Q.
+
+Here are some answers to common questions you might have while working with Houdini
+
+### Can I use queries in endpoints?
+
+Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query#endpoints) api docs.
+
+### Can I define graphql documents in external files?
+
+Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
+For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
+
+### Are `+server` files supported?
+
+Unforunately, `+server` have additional constraints that make them a unique challenge to support (not impossible, just tricky). This is also an area of SvelteKit that is
+rapidly changing and so we are opting to not officially support `+server` files until things stabilize a bit more. Sorry for the inconvinience!
+
+### What's the best way to add a GraphQL endpoint to my application?
+
+Simple answer, we recommend [KitQL](https://www.kitql.dev/). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
+
+### How does the plugin generate loads?
+
+Consider this query:
+
+```svelte
+<!-- src/routes/myRoute/+page.svelte -->
+<script>
+	import { query, graphql } from '$houdini'
+
+	const { data } = query(graphql`
+		query SpeciesInfo {
+			species(id: 1) {
+				name
+				flavor_text
+				sprites {
+					front
+				}
+			}
+		}
+	`)
+</script>
+
+<div>
+	{$data.info..species.name}
+</div>
+```
+
+By looking at the contents of every `graphql` tag in a component, the plugin can extract the query names and then generate/transform that one
+file into these two:
+
+```svelte
+<!-- src/routes/myRoute/+page.svelte -->
+<script>
+	// the store gets passed to us as a prop
+	export let data
+
+	$: ({ SpeciesInfo } = data)
+
+	const { data } = query($SpeciesInfo)
+</script>
+```
+
+```typescript
+// src/routes/myRoute/+page.ts
+import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+
+export async function load({ event }) {
+	await SpeciesInfoStore.fetch({ event })
+
+	return {
+		SpeciesInfo: SpeciesInfoStore
+	}
+}
+```
+
+If you haven't seen Houdini's document stores before, please check out the [Working with GraphQL](/guides/working-with-graphql) guide.
+
+### How do I customize the fetching logic on a case-by-case basis?
+
+You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
+please visit [the query store docs](/api/query#passing-metadata).
+
+### Can I use .env files for pre-processing?
+
+Yes you can! You can pass any [valid configuration value](/api/config#fields) to the vite plugin to use your environment variable:
+
+```typescript
+import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/vite'
+import type { UserConfigExport } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
+
+const config: UserConfigExport = defineConfig(({ mode }) => {
+	// loads env files
+	// supports the use of seperate .env, .env.production, and .env.development files
+	const env = loadEnv(mode, process.cwd())
+
+	return {
+		plugins: [
+			houdini({
+				apiUrl: env.VITE_SECRET_ENDPOINT,
+				schemaPollHeaders: {
+					'X-Header': env.VITE_CUSTOM_HEADER
+				}
+			}),
+			sveltekit()
+		]
+	}
+})
+
+export default config
+```
+
+### What is this `Generated an empty chunk...` warning from vite?
+
+If you have a route directory that does not contain a `+page.js` file and does not have an inline query in your `+page.svelte`, the
+plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - since this empty
+file is never imported there are no performance implications.
+
+### My IDE is complaining that the internal directives and fragments don't exist.
+
+Every plugin and editor is different so we can't give you an exact answer but Houdini will write 2 files inside of the `$houdini` directory that contain all of the schema definitions that it relies on. Be default these files are located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) with `definitionsPath`.
+
+### When will version `1.0` be released?
+
+Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
+
+### Does Houdini support Framework X?
+
+At the moment, Houdini only support SvelteKit and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅
